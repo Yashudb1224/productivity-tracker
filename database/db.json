@@ -1,0 +1,33 @@
+{
+  "users": [
+    {
+      "id": "cvHVRMybGaGkKUYXZQjWe",
+      "name": "Yash Udbalker",
+      "password": "$2b$10$trgj0lRCsCVUBc.GYQqVh.PeNMzpaGuPJYsTGW1KYAlKueRjN0YgG",
+      "createdAt": "2026-01-08T18:01:40.869Z"
+    }
+  ],
+  "entries": [
+    {
+      "id": "CbQtl-2w9h7dO1Yu2QhAC",
+      "userId": "cvHVRMybGaGkKUYXZQjWe",
+      "activity": "running",
+      "value": 3,
+      "date": "2026-01-07"
+    },
+    {
+      "id": "nXPHUMgnxF5XTMBL55uTK",
+      "userId": "cvHVRMybGaGkKUYXZQjWe",
+      "activity": "nojunk",
+      "value": 1,
+      "date": "2026-01-08"
+    },
+    {
+      "id": "c2n8iR2i4q4K05MB4GZuR",
+      "userId": "cvHVRMybGaGkKUYXZQjWe",
+      "activity": "violin",
+      "value": 0.5,
+      "date": "2026-01-04"
+    }
+  ]
+}
