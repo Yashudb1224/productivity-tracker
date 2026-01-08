@@ -30,8 +30,8 @@ export default function Login() {
             const user = await api.login(name, password);
             login(user); // Updates store
             router.push("/dashboard");
-        } catch (err) {
-            alert("Invalid identifier or password.");
+        } catch (err: any) {
+            alert(err.message || "Invalid identifier or password.");
         }
     };
 

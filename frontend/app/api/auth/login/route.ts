@@ -8,7 +8,9 @@ export async function POST(req: Request) {
         await dbConnect();
         const { name, password } = await req.json();
 
-        const user = await User.findOne({ name });
+        const user = await User.findOne({
+            name: { $regex: new RegExp(`^${name}$`, "i") }
+        });
         if (!user) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
