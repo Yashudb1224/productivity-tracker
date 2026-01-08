@@ -26,30 +26,36 @@ ChartJS.register(
 );
 
 export default function TrendSection() {
-  const entries = useAppStore((s) => s.entries);
+  const { entries, user } = useAppStore();
+  const habits = user?.habits || [];
+  const numericHabits = habits.filter(h => h.type === "numeric");
 
   // Get last 7 days data for trends
   const trendData = useMemo(() => {
-    const labels = [];
-    const runData = [];
-    const exerciseData = [];
-    const violinData = [];
+    const labels: string[] = [];
+    const dataMaps: Record<string, number[]> = {};
+
+    numericHabits.forEach(h => {
+      dataMaps[h.id] = [];
+    });
 
     const today = new Date();
     for (let i = 6; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().slice(0, 10);
+      const dateStr = d.toLocaleDateString("en-CA");
       labels.push(d.toLocaleDateString("en-US", { weekday: "short" }));
 
       const dayEntries = entries.filter((e) => e.date === dateStr);
-      runData.push(dayEntries.filter(e => e.activity === "running").reduce((a, b) => a + b.value, 0));
-      exerciseData.push(dayEntries.filter(e => e.activity === "exercise").reduce((a, b) => a + b.value, 0));
-      violinData.push(dayEntries.filter(e => e.activity === "violin").reduce((a, b) => a + b.value, 0));
+
+      numericHabits.forEach(h => {
+        const val = dayEntries.filter(e => e.activity === h.id).reduce((a, b) => a + b.value, 0);
+        dataMaps[h.id].push(val);
+      });
     }
 
-    return { labels, runData, exerciseData, violinData };
-  }, [entries]);
+    return { labels, dataMaps };
+  }, [entries, numericHabits]);
 
   const commonOptions = {
     responsive: true,
@@ -65,80 +71,64 @@ export default function TrendSection() {
     }
   };
 
+  if (numericHabits.length === 0) return null;
+
+  const getChartColor = (gradientClass?: string) => {
+    if (!gradientClass) return "#22d3ee"; // default cyan
+
+    // Map Tailwind classes to approximations for the chart
+    if (gradientClass.includes("purple")) return "#c084fc";
+    if (gradientClass.includes("blue")) return "#60a5fa";
+    if (gradientClass.includes("neon-blue")) return "#22d3ee";
+    if (gradientClass.includes("green")) return "#34d399";
+    if (gradientClass.includes("emerald")) return "#34d399";
+    if (gradientClass.includes("orange")) return "#fb923c";
+    if (gradientClass.includes("yellow")) return "#facc15";
+    if (gradientClass.includes("pink")) return "#f472b6";
+    if (gradientClass.includes("rose")) return "#fb7185";
+    if (gradientClass.includes("indigo")) return "#818cf8";
+    if (gradientClass.includes("gray")) return "#9ca3af";
+    if (gradientClass.includes("teal")) return "#2dd4bf";
+    if (gradientClass.includes("fuchsia")) return "#e879f9";
+    if (gradientClass.includes("cyan")) return "#22d3ee";
+
+    return "#22d3ee";
+  };
+
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60 tracking-wider">
         7-DAY TRENDS
       </h2>
 
-      {/* Running */}
-      <GlassCard className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-sm font-bold text-aurora-cyan tracking-widest">RUNNING (KM)</h3>
-        </div>
-        <div className="h-32">
-          <Line
-            options={commonOptions}
-            data={{
-              labels: trendData.labels,
-              datasets: [{
-                data: trendData.runData,
-                borderColor: "#22d3ee", // cyan-400
-                backgroundColor: "#22d3ee",
-                tension: 0.4,
-                borderWidth: 2,
-                pointRadius: 3
-              }]
-            }}
-          />
-        </div>
-      </GlassCard>
-
-      {/* Exercise */}
-      <GlassCard className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-sm font-bold text-aurora-purple tracking-widest">EXERCISE (HRS)</h3>
-        </div>
-        <div className="h-32">
-          <Line
-            options={commonOptions}
-            data={{
-              labels: trendData.labels,
-              datasets: [{
-                data: trendData.exerciseData,
-                borderColor: "#c084fc", // purple-400
-                backgroundColor: "#c084fc",
-                tension: 0.4,
-                borderWidth: 2,
-                pointRadius: 3
-              }]
-            }}
-          />
-        </div>
-      </GlassCard>
-
-      {/* Violin */}
-      <GlassCard className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-sm font-bold text-aurora-green tracking-widest">VIOLIN (HRS)</h3>
-        </div>
-        <div className="h-32">
-          <Line
-            options={commonOptions}
-            data={{
-              labels: trendData.labels,
-              datasets: [{
-                data: trendData.violinData,
-                borderColor: "#34d399", // emerald-400 (green)
-                backgroundColor: "#34d399",
-                tension: 0.4,
-                borderWidth: 2,
-                pointRadius: 3
-              }]
-            }}
-          />
-        </div>
-      </GlassCard>
+      {numericHabits.map(habit => {
+        const color = getChartColor(habit.color);
+        return (
+          <GlassCard key={habit.id} className="p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-sm font-bold tracking-widest uppercase" style={{ color: color }}>
+                {habit.name} ({habit.unit})
+              </h3>
+            </div>
+            <div className="h-32">
+              <Line
+                options={commonOptions}
+                data={{
+                  labels: trendData.labels,
+                  datasets: [{
+                    data: trendData.dataMaps[habit.id],
+                    borderColor: color,
+                    backgroundColor: color,
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 3
+                  }]
+                }}
+              />
+            </div>
+          </GlassCard>
+        );
+      })}
     </div>
   );
 }

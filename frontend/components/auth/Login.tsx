@@ -97,10 +97,15 @@ export default function Login() {
                     </NeonButton>
                 </form>
 
-                <div className="mt-6 text-center">
-                    <span className="text-gray-500 text-sm">New here? </span>
-                    <Link href="/register" className="text-neon-purple hover:text-white text-sm font-bold transition-colors">
-                        Create Identity
+                <div className="mt-6 flex flex-col items-center gap-2 text-sm text-gray-400">
+                    <div>
+                        New User?{" "}
+                        <Link href="/register" className="text-neon-cyan hover:text-white transition-colors">
+                            Register
+                        </Link>
+                    </div>
+                    <Link href="/recover" className="text-red-400/60 hover:text-red-400 transition-colors text-xs uppercase tracking-wider">
+                        Forgot Password?
                     </Link>
                 </div>
             </GlassCard>

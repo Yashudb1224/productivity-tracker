@@ -31,7 +31,6 @@ export default function DashboardPage() {
           </div>
           <div className="flex gap-4 items-center">
             <DateSelector />
-            <ExportButton />
           </div>
         </div>
 

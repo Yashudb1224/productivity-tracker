@@ -1,14 +1,15 @@
-export type Activity = "running" | "exercise" | "violin" | "nojunk";
-
-export interface Goal {
-  activity: Activity;
-  target: number;
-  period: "weekly" | "monthly";
-}
+export type Activity = string;
 
 export interface Habit {
-  id: Activity;
+  id: string;
   name: string;
   type: "numeric" | "boolean";
-  unit: string;
+  unit?: string;
+  color: string; // e.g. "from-neon-blue to-neon-cyan"
+}
+
+export interface Goal {
+  habitId: string;
+  target: number;
+  period: "weekly" | "monthly" | "yearly";
 }

@@ -9,16 +9,39 @@ import {
 } from "@/lib/calculations";
 
 export default function KPIGrid() {
-  const entries = useAppStore((s) => s.entries);
-
+  const { entries, user } = useAppStore();
   const streak = globalStreak(entries);
+  const habits = user?.habits || [];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-      <StatCard label="Current Streak" value={`${streak} Days`} color="cyan" />
-      <StatCard label="Total Run (KM)" value={totalByActivity(entries, "running").toString()} color="purple" />
-      <StatCard label="Total Exercise (Hrs)" value={totalByActivity(entries, "exercise").toString()} color="green" />
-      <StatCard label="No Junk Days" value={noJunkDays(entries).toString()} color="cyan" />
+      <StatCard label="Activity Streak" value={`${streak} Days 🔥`} color="cyan" />
+
+      {habits.map(habit => {
+        if (habit.type === "numeric") {
+          const total = totalByActivity(entries, habit.id);
+          return (
+            <StatCard
+              key={habit.id}
+              label={`Total ${habit.name}`}
+              value={`${total} ${habit.unit}`}
+              // Cheap way to map gradient string to simple color name for StatCard if needed, 
+              // or update StatCard to accept full class
+              color="purple"
+            />
+          );
+        } else {
+          const days = noJunkDays(entries, habit.id); // utilizing generalized noJunkDays
+          return (
+            <StatCard
+              key={habit.id}
+              label={`${habit.name} Days`}
+              value={days.toString()}
+              color="green"
+            />
+          );
+        }
+      })}
     </div>
   );
 }

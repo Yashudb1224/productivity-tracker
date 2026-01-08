@@ -20,13 +20,13 @@ export default function DateSelector() {
         const newDate = d.toISOString().slice(0, 10);
 
         // Prevent going into future
-        const today = new Date().toISOString().slice(0, 10);
+        const today = new Date().toLocaleDateString("en-CA");
         if (newDate > today) return;
 
         setSelectedDate(newDate);
     };
 
-    const isToday = selectedDate === new Date().toISOString().slice(0, 10);
+    const isToday = selectedDate === new Date().toLocaleDateString("en-CA");
 
     return (
         <GlassCard className="flex items-center gap-4 px-4 py-2 !rounded-full">

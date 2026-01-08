@@ -55,14 +55,24 @@ export default function Heatmap() {
                 // Tooltip
                 let tooltip = `${dateStr}`;
                 if (count > 0) {
-                    const running = dayEntries.find(e => e.activity === "running")?.value;
-                    const exercise = dayEntries.find(e => e.activity === "exercise")?.value;
-                    const violin = dayEntries.find(e => e.activity === "violin")?.value;
+                    const details: string[] = [];
+                    const habits = useAppStore.getState().user?.habits || [];
 
-                    const details = [];
-                    if (running) details.push(`${running}km Run`);
-                    if (exercise) details.push(`${exercise}h Ex`);
-                    if (violin) details.push(`${violin}h Vln`);
+                    habits.forEach(habit => {
+                        const entry = dayEntries.find(e => e.activity === habit.id);
+                        if (entry) {
+                            if (habit.type === "numeric") {
+                                details.push(`${entry.value}${habit.unit || ''} ${habit.name}`);
+                            } else {
+                                details.push(`${habit.name}`);
+                            }
+                        }
+                    });
+
+                    // Fallback if we have entries but no matching habits (e.g. legacy data)
+                    if (details.length === 0 && dayEntries.length > 0) {
+                        details.push(`${dayEntries.length} activities`);
+                    }
 
                     if (details.length > 0) tooltip += `: ${details.join(", ")}`;
                     else tooltip += `: ${count} activities`;
@@ -98,18 +108,20 @@ export default function Heatmap() {
     // Generate Month Labels
     const monthLabels = useMemo(() => {
         const labels: { text: string; weekIndex: number }[] = [];
-        let lastMonth = -1;
 
         calendarData.forEach((week, index) => {
-            // Check the first day of the week (or second if first is end of prev month)
-            // Usually we label if the month changed in this week
-            const firstDay = week[0];
-            if (firstDay.monthIndex !== lastMonth) {
+            // Check if this week contains the 1st of any month
+            const firstOfMonth = week.find(day => day.date.endsWith("-01"));
+
+            if (firstOfMonth && firstOfMonth.isCurrentYear) {
+                // Determine month name
+                const date = new Date(firstOfMonth.date);
+                const text = date.toLocaleDateString("en-US", { month: "short" });
+
                 labels.push({
-                    text: new Date(firstDay.date).toLocaleDateString("en-US", { month: "short" }),
+                    text,
                     weekIndex: index
                 });
-                lastMonth = firstDay.monthIndex;
             }
         });
         return labels;
@@ -117,8 +129,9 @@ export default function Heatmap() {
 
     const getColor = (value: number) => {
         if (value === 0) return "bg-white/5";
-        if (value === 1) return "bg-aurora-cyan/30";
-        if (value === 2) return "bg-aurora-cyan/60";
+        if (value <= 1) return "bg-aurora-cyan/30";
+        if (value <= 3) return "bg-aurora-cyan/60";
+        if (value <= 5) return "bg-aurora-cyan/80";
         return "bg-aurora-cyan";
     };
 

@@ -28,7 +28,7 @@ const writeDb = (data) => {
 
 // Register
 app.post('/api/register', async (req, res) => {
-    const { name, password, id } = req.body;
+    const { name, password, id, recoveryKey } = req.body;
     console.log(`[API] Registering user: ${name}`);
     const db = readDb();
 
@@ -37,13 +37,47 @@ app.post('/api/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = { id, name, password: hashedPassword, createdAt: new Date().toISOString() };
+    // Hash recovery key if provided
+    let recoveryHash = null;
+    if (recoveryKey) {
+        recoveryHash = await bcrypt.hash(recoveryKey, 10);
+    }
+
+    // Initialize with empty habits array
+    const newUser = { id, name, password: hashedPassword, recoveryHash, habits: [], createdAt: new Date().toISOString() };
 
     db.users.push(newUser);
     writeDb(db);
 
-    const { password: _, ...userWithoutPass } = newUser;
+    const { password: _, recoveryHash: __, ...userWithoutPass } = newUser;
     res.json(userWithoutPass);
+});
+
+// Recover Password
+app.post('/api/recover', async (req, res) => {
+    const { name, recoveryKey, newPassword } = req.body;
+    console.log(`[API] Recovery attempt for: ${name}`);
+    const db = readDb();
+
+    const userIndex = db.users.findIndex(u => u.name.toLowerCase() === name.toLowerCase());
+    if (userIndex === -1) return res.status(404).json({ error: "User not found" });
+
+    const user = db.users[userIndex];
+    if (!user.recoveryHash) {
+        return res.status(400).json({ error: "No recovery key set for this account." });
+    }
+
+    const isValid = await bcrypt.compare(recoveryKey, user.recoveryHash);
+    if (!isValid) {
+        return res.status(401).json({ error: "Invalid recovery key" });
+    }
+
+    // Reset Password
+    const newHashedPassword = await bcrypt.hash(newPassword, 10);
+    db.users[userIndex].password = newHashedPassword;
+    writeDb(db);
+
+    res.json({ message: "Password reset successful" });
 });
 
 // Login
@@ -133,6 +167,60 @@ app.delete('/api/account', (req, res) => {
     res.json({ message: "Account deleted" });
 });
 
+// Manage Habits
+app.post('/api/habits', (req, res) => {
+    const { userId, habit } = req.body;
+    console.log(`[API] Adding habit for: ${userId}`);
+    const db = readDb();
+
+    const userIndex = db.users.findIndex(u => u.id === userId);
+    if (userIndex === -1) return res.status(404).json({ error: "User not found" });
+
+    // Ensure habits array exists
+    if (!db.users[userIndex].habits) db.users[userIndex].habits = [];
+
+    db.users[userIndex].habits.push(habit);
+    writeDb(db);
+
+    res.json(habit);
+});
+
+app.put('/api/habits', (req, res) => {
+    const { userId, habit } = req.body;
+    console.log(`[API] Updating habit ${habit.id} for: ${userId}`);
+    const db = readDb();
+
+    const userIndex = db.users.findIndex(u => u.id === userId);
+    if (userIndex === -1) return res.status(404).json({ error: "User not found" });
+
+    if (db.users[userIndex].habits) {
+        const habitIndex = db.users[userIndex].habits.findIndex(h => h.id === habit.id);
+        if (habitIndex !== -1) {
+            db.users[userIndex].habits[habitIndex] = habit;
+            writeDb(db);
+            return res.json(habit);
+        }
+    }
+
+    res.status(404).json({ error: "Habit not found" });
+});
+
+app.delete('/api/habits', (req, res) => {
+    const { userId, habitId } = req.body;
+    console.log(`[API] Removing habit ${habitId} for: ${userId}`);
+    const db = readDb();
+
+    const userIndex = db.users.findIndex(u => u.id === userId);
+    if (userIndex === -1) return res.status(404).json({ error: "User not found" });
+
+    if (db.users[userIndex].habits) {
+        db.users[userIndex].habits = db.users[userIndex].habits.filter(h => h.id !== habitId);
+        writeDb(db);
+    }
+
+    res.json({ message: "Habit removed" });
+});
+
 // Clear Data (Only for specific user)
 app.post('/api/clear', (req, res) => {
     const { userId } = req.body;
@@ -141,6 +229,8 @@ app.post('/api/clear', (req, res) => {
 
     const db = readDb();
     db.entries = db.entries.filter(e => e.userId !== userId);
+    // Optional: Clear habits too? Usually "Clear Data" implies entries, not configuration.
+    // Let's keep habits for now.
     writeDb(db);
     res.json({ message: "Data cleared" });
 });

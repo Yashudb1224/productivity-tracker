@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { User } from "@/types/user";
 import { DailyEntry } from "@/types/entry";
-import { Goal, Activity } from "@/types/habit";
+import { Goal, Activity, Habit } from "@/types/habit";
 import { streakForActivity } from "@/lib/calculations";
 import { nanoid } from "nanoid";
 import { api } from "@/lib/api";
@@ -30,6 +30,10 @@ interface AppState {
   getStreak: (activity: Activity) => number;
   clearData: () => void;
   deleteAccount: () => Promise<void>;
+
+  addHabit: (habit: Habit) => Promise<void>;
+  removeHabit: (habitId: string) => Promise<void>;
+  updateHabit: (habit: Habit) => Promise<void>;
 }
 
 export const useAppStore = create<AppState>()(
@@ -38,7 +42,7 @@ export const useAppStore = create<AppState>()(
       // -------- USER --------
       user: null,
       isLoading: true,
-      selectedDate: new Date().toISOString().slice(0, 10),
+      selectedDate: new Date().toLocaleDateString("en-CA"),
 
       login: (user: User) => {
         set({ user });
@@ -75,7 +79,7 @@ export const useAppStore = create<AppState>()(
           userId: u.id,
           activity,
           value,
-          date: date || new Date().toISOString().slice(0, 10),
+          date: date || new Date().toLocaleDateString("en-CA"),
         };
         // Optimistic
         set((state) => ({ entries: [...state.entries, newEntry] }));
@@ -108,10 +112,54 @@ export const useAppStore = create<AppState>()(
           await api.deleteAccount(u.id);
           get().logout();
         }
+      },
+
+      addHabit: async (habit: Habit) => {
+        const u = get().user;
+        if (!u) return;
+
+        // Optimistic update
+        const updatedHabits = [...(u.habits || []), habit];
+        set({ user: { ...u, habits: updatedHabits } });
+
+        try {
+          await api.addHabit(u.id, habit);
+        } catch (e) {
+          console.error("Failed to add habit", e);
+          // Revert? For now assume success or reload.
+        }
+      },
+
+      removeHabit: async (habitId: string) => {
+        const u = get().user;
+        if (!u) return;
+
+        const updatedHabits = (u.habits || []).filter(h => h.id !== habitId);
+        set({ user: { ...u, habits: updatedHabits } });
+
+        try {
+          await api.removeHabit(u.id, habitId);
+        } catch (e) {
+          console.error("Failed to remove habit", e);
+        }
+      },
+
+      updateHabit: async (habit: Habit) => {
+        const u = get().user;
+        if (!u) return;
+
+        const updatedHabits = (u.habits || []).map(h => h.id === habit.id ? habit : h);
+        set({ user: { ...u, habits: updatedHabits } });
+
+        try {
+          await api.updateHabit(u.id, habit);
+        } catch (e) {
+          console.error("Failed to update habit", e);
+        }
       }
     }),
     {
-      name: "productivity-tracker-v2", // Bumped version to invalidate old cache
+      name: "productivity-tracker-v2",
       version: 1,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({

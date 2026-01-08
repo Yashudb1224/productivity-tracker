@@ -1,28 +1,31 @@
 import { Habit } from "@/types/habit";
 
-export const HABITS: Habit[] = [
+export const DEFAULT_HABITS: Habit[] = [
   {
     id: "running",
     name: "Running",
     type: "numeric",
     unit: "km",
+    color: "from-neon-blue to-neon-cyan"
   },
   {
     id: "exercise",
     name: "Exercise",
     type: "numeric",
-    unit: "hours",
+    unit: "hrs",
+    color: "from-neon-purple to-neon-pink"
   },
   {
     id: "violin",
-    name: "Violin Practice",
+    name: "Violin",
     type: "numeric",
-    unit: "hours",
+    unit: "hrs",
+    color: "from-neon-green to-emerald-400"
   },
   {
     id: "nojunk",
     name: "No Junk Food",
     type: "boolean",
-    unit: "days",
-  },
+    color: "from-orange-400 to-red-500"
+  }
 ];

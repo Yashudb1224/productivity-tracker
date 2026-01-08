@@ -22,6 +22,7 @@ export const createUser = (name: string): User => {
   const newUser: User = {
     id: nanoid(),
     name,
+    habits: [],
     createdAt: new Date().toISOString(),
   };
 
