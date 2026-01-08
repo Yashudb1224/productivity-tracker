@@ -1,36 +1,36 @@
 import { User } from "@/types/user";
 import { DailyEntry } from "@/types/entry";
 
-const API_URL = "http://localhost:3001/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 export const api = {
     getUsers: async (): Promise<User[]> => {
-        try {
-            const res = await fetch(`${API_URL}/users`);
-            return res.ok ? res.json() : [];
-        } catch (e) {
-            console.error("API Error", e);
-            return [];
-        }
+        return []; // Deprecated
     },
 
     register: async (name: string, id: string, password: string, recoveryKey?: string): Promise<User> => {
-        const res = await fetch(`${API_URL}/register`, {
+        const res = await fetch(`${API_URL}/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, id, password, recoveryKey }),
+            body: JSON.stringify({ name, password, recoveryKey }),
         });
-        if (!res.ok) throw new Error("Registration failed");
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || "Registration failed");
+        }
         return res.json();
     },
 
     login: async (name: string, password: string): Promise<User> => {
-        const res = await fetch(`${API_URL}/login`, {
+        const res = await fetch(`${API_URL}/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name, password }),
         });
-        if (!res.ok) throw new Error("Login failed");
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || "Login failed");
+        }
         return res.json();
     },
 
@@ -52,18 +52,14 @@ export const api = {
     },
 
     clearData: async (userId: string) => {
-        await fetch(`${API_URL}/clear`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId })
+        await fetch(`${API_URL}/entries?userId=${userId}`, {
+            method: "DELETE",
         });
     },
 
     deleteAccount: async (userId: string) => {
-        await fetch(`${API_URL}/account`, {
+        await fetch(`${API_URL}/user/delete?userId=${userId}`, {
             method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId })
         });
     },
 
@@ -88,15 +84,13 @@ export const api = {
     },
 
     removeHabit: async (userId: string, habitId: string) => {
-        await fetch(`${API_URL}/habits`, {
+        await fetch(`${API_URL}/habits?userId=${userId}&habitId=${habitId}`, {
             method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId, habitId })
         });
     },
 
     recover: async (name: string, recoveryKey: string, newPassword: string): Promise<{ message: string }> => {
-        const res = await fetch(`${API_URL}/recover`, {
+        const res = await fetch(`${API_URL}/auth/recover`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name, recoveryKey, newPassword })
