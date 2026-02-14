@@ -4,6 +4,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import BarChart from "@/components/charts/BarChart";
 import { useAppStore } from "@/store/useAppStore";
 import GlassCard from "@/components/ui/GlassCard";
+import { getHabitIcon } from "@/lib/habitIcons";
 
 export default function AnalyticsPage() {
   const { entries, user } = useAppStore();
@@ -59,9 +60,19 @@ export default function AnalyticsPage() {
 
           return (
             <GlassCard key={habit.id} className="p-6">
-              <h2 className="mb-6 text-xl font-bold tracking-wider uppercase text-white flex items-center gap-3">
-                <div className={`w-3 h-3 rounded-full bg-gradient-to-br ${habit.color}`} />
-                {habit.name} <span className="text-gray-500 text-sm normal-case">/ {habit.unit}</span>
+              <h2 className="mb-6 text-xl font-bold tracking-wider uppercase text-white flex items-center gap-5">
+                <div className="flex-shrink-0 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                  {getHabitIcon(habit.icon, "w-10 h-10", habit.name)}
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-3xl font-black italic tracking-tighter leading-tight">{habit.name}</span>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-gray-500 text-[10px] tracking-[0.4em] font-black uppercase">
+                      PROTOCOL INDEX // {habit.unit}
+                    </span>
+                    <div className={`w-8 h-1 rounded-full bg-gradient-to-r ${habit.color} opacity-40`} />
+                  </div>
+                </div>
               </h2>
               {/* 
                          We reuse BarChart but it might need styling props to match habit color?

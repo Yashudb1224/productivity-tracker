@@ -13,7 +13,8 @@ import {
 import { Line } from "react-chartjs-2";
 import { useAppStore } from "@/store/useAppStore";
 import GlassCard from "../ui/GlassCard";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { getHabitIcon } from "@/lib/habitIcons";
 
 ChartJS.register(
   CategoryScale,
@@ -27,11 +28,16 @@ ChartJS.register(
 
 export default function TrendSection() {
   const { entries, user } = useAppStore();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const habits = user?.habits || [];
   const numericHabits = habits.filter(h => h.type === "numeric");
 
   // Get last 7 days data for trends
   const trendData = useMemo(() => {
+    if (!mounted) return { labels: [], dataMaps: {} };
+
     const labels: string[] = [];
     const dataMaps: Record<string, number[]> = {};
 
@@ -43,10 +49,11 @@ export default function TrendSection() {
     for (let i = 6; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
-      const dateStr = d.toLocaleDateString("en-CA");
+      const dateStr = d.toISOString().split('T')[0];
       labels.push(d.toLocaleDateString("en-US", { weekday: "short" }));
 
       const dayEntries = entries.filter((e) => e.date === dateStr);
+      // ...
 
       numericHabits.forEach(h => {
         const val = dayEntries.filter(e => e.activity === h.id).reduce((a, b) => a + b.value, 0);
@@ -71,6 +78,7 @@ export default function TrendSection() {
     }
   };
 
+  if (!mounted) return <div className="h-64 bg-white/5 rounded-2xl animate-pulse" />;
   if (numericHabits.length === 0) return null;
 
   const getChartColor = (gradientClass?: string) => {
@@ -106,9 +114,14 @@ export default function TrendSection() {
         return (
           <GlassCard key={habit.id} className="p-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-bold tracking-widest uppercase" style={{ color: color }}>
-                {habit.name} ({habit.unit})
-              </h3>
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 rounded-lg bg-white/5">
+                  {getHabitIcon(habit.icon, "w-4 h-4", habit.name)}
+                </div>
+                <h3 className="text-sm font-bold tracking-widest uppercase" style={{ color: color }}>
+                  {habit.name} ({habit.unit})
+                </h3>
+              </div>
             </div>
             <div className="h-32">
               <Line

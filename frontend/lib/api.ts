@@ -63,6 +63,22 @@ export const api = {
         });
     },
 
+    getMe: async (userId: string): Promise<User> => {
+        const res = await fetch(`${API_URL}/user/me?userId=${userId}`);
+        if (!res.ok) throw new Error("Failed to fetch user");
+        return res.json();
+    },
+
+    clerkSync: async (clerkId: string, name: string, email?: string): Promise<User> => {
+        const res = await fetch(`${API_URL}/auth/clerk-sync`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ clerkId, name, email }),
+        });
+        if (!res.ok) throw new Error("Failed to sync Clerk user");
+        return res.json();
+    },
+
     addHabit: async (userId: string, habit: any) => {
         const res = await fetch(`${API_URL}/habits`, {
             method: "POST",

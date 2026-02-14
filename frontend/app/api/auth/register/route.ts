@@ -26,7 +26,7 @@ export async function POST(req: Request) {
             name,
             password: hashedPassword,
             recoveryHash: hashedRecovery,
-            habits: DEFAULT_HABITS,
+            habits: [],
         });
 
         // Return the safe user object (convert mongoose doc to object)

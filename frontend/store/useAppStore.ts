@@ -42,22 +42,28 @@ export const useAppStore = create<AppState>()(
       // -------- USER --------
       user: null,
       isLoading: true,
-      selectedDate: new Date().toLocaleDateString("en-CA"),
+      selectedDate: new Date().toISOString().split('T')[0],
 
       login: (user: User) => {
-        set({ user });
+        set({ user, isLoading: false });
         get().fetchEntries();
       },
       logout: () => {
         localStorage.removeItem("pd_current_user"); // Legacy cleanup if needed
         set({ user: null, entries: [], goals: [] });
       },
-      checkSession: () => {
-        set({ isLoading: false });
-        // If user exists from persist, fetch data
-        if (get().user) {
+      checkSession: async () => {
+        const u = get().user;
+        if (u) {
+          try {
+            const freshUser = await api.getMe(u.id);
+            set({ user: freshUser });
+          } catch (e) {
+            console.error("Session refresh failed", e);
+          }
           get().fetchEntries();
         }
+        set({ isLoading: false });
       },
 
       setSelectedDate: (date: string) => set({ selectedDate: date }),

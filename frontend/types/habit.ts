@@ -6,6 +6,7 @@ export interface Habit {
   type: "numeric" | "boolean";
   unit?: string;
   color: string; // e.g. "from-neon-blue to-neon-cyan"
+  icon?: string; // Icon ID for mapping
 }
 
 export interface Goal {

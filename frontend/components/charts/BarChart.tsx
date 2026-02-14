@@ -8,6 +8,7 @@ import {
   Tooltip,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
+import { useState, useEffect } from "react";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
@@ -18,6 +19,10 @@ export default function BarChart({
   labels: string[];
   data: number[];
 }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) return <div className="w-full h-full bg-white/5 rounded-lg animate-pulse" />;
   return (
     <Bar
       data={{

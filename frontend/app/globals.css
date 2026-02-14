@@ -46,6 +46,35 @@ body {
   text-shadow: 0 0 10px rgba(188, 19, 254, 0.5);
 }
 
+.icon-glow {
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.2)) drop-shadow(0 0 15px rgba(255, 255, 255, 0.1));
+  animation: icon-pulse 4s ease-in-out infinite;
+}
+
+.icon-glow-cyan {
+  filter: drop-shadow(0 0 12px rgba(0, 210, 255, 0.4)) drop-shadow(0 0 25px rgba(0, 210, 255, 0.2));
+  animation: icon-pulse 4s ease-in-out infinite;
+}
+
+.icon-glow-purple {
+  filter: drop-shadow(0 0 12px rgba(112, 0, 255, 0.4)) drop-shadow(0 0 25px rgba(112, 0, 255, 0.2));
+  animation: icon-pulse 4s ease-in-out infinite;
+}
+
+@keyframes icon-pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.02);
+    opacity: 0.9;
+  }
+}
+
 /* ---------- SCROLLBAR ---------- */
 ::-webkit-scrollbar {
   width: 6px;

@@ -6,6 +6,7 @@ interface StatCardProps {
     subtext?: string;
     trend?: "up" | "down" | "neutral";
     color?: "cyan" | "purple" | "green";
+    icon?: React.ReactNode;
 }
 
 export default function StatCard({
@@ -13,6 +14,7 @@ export default function StatCard({
     value,
     subtext,
     trend,
+    icon,
     color = "cyan",
 }: StatCardProps) {
     const colorFn = {
@@ -22,14 +24,20 @@ export default function StatCard({
     };
 
     return (
-        <GlassCard className="flex flex-col items-start gap-1">
-            <span className="text-xs text-gray-400 uppercase tracking-widest font-bold">
-                {label}
-            </span>
-            <div className={`text-3xl font-bold font-mono ${colorFn[color]}`}>
+        <GlassCard className="flex flex-col items-start gap-1 relative overflow-hidden group">
+            <div className="flex justify-between items-start w-full mb-1">
+                <span className="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-black">
+                    {label}
+                </span>
+                {icon && <div className={`opacity-20 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 ${colorFn[color]}`}>{icon}</div>}
+            </div>
+            <div className={`text-4xl font-black font-mono tracking-tighter ${colorFn[color]}`}>
                 {value}
             </div>
-            {subtext && <div className="text-xs text-gray-500 mt-1">{subtext}</div>}
+            {subtext && <div className="text-[10px] text-gray-500 mt-2 uppercase tracking-widest font-bold">{subtext}</div>}
+
+            {/* Subtle background glow on hover */}
+            <div className={`absolute -right-4 -bottom-4 w-24 h-24 rounded-full blur-3xl opacity-0 group-hover:opacity-10 transition-opacity duration-700 bg-current ${colorFn[color]}`} />
         </GlassCard>
     );
 }

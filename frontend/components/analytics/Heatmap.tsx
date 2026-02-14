@@ -105,9 +105,14 @@ export default function Heatmap() {
         return weeks;
     }, [entries]);
 
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
+
     // Generate Month Labels
     const monthLabels = useMemo(() => {
+        if (!mounted) return [];
         const labels: { text: string; weekIndex: number }[] = [];
+        // ... (trimmed for chunk, but I'll replace the block)
 
         calendarData.forEach((week, index) => {
             // Check if this week contains the 1st of any month
@@ -135,6 +140,8 @@ export default function Heatmap() {
         return "bg-aurora-cyan";
     };
 
+    if (!mounted) return <div className="w-full h-64 bg-white/5 rounded-2xl animate-pulse" />;
+
     return (
         <GlassCard className="w-full overflow-hidden">
             <div className="flex items-center justify-between mb-6">
@@ -151,14 +158,14 @@ export default function Heatmap() {
                 </div>
             </div>
 
-            <div className="flex flex-col w-full overflow-x-auto custom-scrollbar pb-2">
+            <div className="flex flex-col w-full pb-2">
                 {/* Month Labels row */}
-                <div className="flex mb-3 ml-8 relative h-5">
+                <div className="flex mb-4 ml-10 relative h-6">
                     {monthLabels.map((lbl, i) => (
                         <div
                             key={i}
-                            className="absolute text-xs text-gray-400 font-medium whitespace-nowrap"
-                            style={{ left: `${lbl.weekIndex * 20}px` }}
+                            className="absolute text-[10px] text-gray-400 font-bold uppercase tracking-widest whitespace-nowrap"
+                            style={{ left: `${lbl.weekIndex * (22 + 4)}px` }} // cell size (22px) + gap (4px)
                         >
                             {lbl.text}
                         </div>
@@ -167,18 +174,18 @@ export default function Heatmap() {
 
                 <div className="flex">
                     {/* Weekday Labels */}
-                    <div className="flex flex-col gap-[3px] mr-3 mt-[20px]">
+                    <div className="flex flex-col gap-[4px] mr-4 mt-[28px]">
                         {["", "Mon", "", "Wed", "", "Fri", ""].map((day, i) => (
-                            <div key={i} className="h-4 text-[10px] text-gray-500 leading-4 text-right w-6">
+                            <div key={i} className="h-[22px] text-[9px] text-gray-500 font-bold uppercase leading-[22px] text-right w-6">
                                 {day}
                             </div>
                         ))}
                     </div>
 
                     {/* The Grid (Weeks as columns) */}
-                    <div className="flex gap-[3px] flex-1">
+                    <div className="flex gap-[4px] flex-1">
                         {calendarData.map((week, wIndex) => (
-                            <div key={wIndex} className="flex flex-col gap-[3px]">
+                            <div key={wIndex} className="flex flex-col gap-[4px]">
                                 {week.map((day) => {
                                     const isSelected = day.date === selectedDate;
                                     // Interactive logic: Disable if NOT 2026 or Future
@@ -191,11 +198,11 @@ export default function Heatmap() {
                                                 if (isInteractive) setSelectedDate(day.date);
                                             }}
                                             className={`
-                                        w-4 h-4 rounded-sm transition-all duration-200 
-                                        ${!isInteractive ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}
+                                        w-[22px] h-[22px] rounded-[3px] transition-all duration-300 
+                                        ${!isInteractive ? "opacity-10 cursor-not-allowed" : "cursor-pointer"}
                                         ${day.isCurrentYear ? getColor(day.value) : "opacity-0 pointer-events-none"}
-                                        ${day.isCurrentYear && isSelected ? "ring-2 ring-white z-10 scale-110" : ""}
-                                        ${isInteractive && !isSelected ? "hover:scale-110 hover:brightness-125" : ""}
+                                        ${day.isCurrentYear && isSelected ? "ring-2 ring-aurora-cyan z-10 scale-125 shadow-[0_0_20px_rgba(34,211,238,0.4)]" : ""}
+                                        ${isInteractive && !isSelected ? "hover:scale-125 hover:brightness-150 hover:z-10" : ""}
                                     `}
                                             title={day.tooltip}
                                         />

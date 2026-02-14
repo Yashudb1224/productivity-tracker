@@ -38,34 +38,27 @@ export const globalStreak = (entries: DailyEntry[]) => {
 
 // Helper: robust streak calc using Local Date
 const calculateStreak = (activeDays: Set<string>) => {
-  // Get local YYYY-MM-DD for today and yesterday
-  // Trick: use a Date object, shift it, then slice toISOString?
-  // NO! toISOString is UTC. Use toLocaleDateString("en-CA") for local ISO-like format.
-  const today = new Date();
-  const todayStr = today.toLocaleDateString("en-CA");
+  const todayStr = new Date().toISOString().split('T')[0];
 
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toLocaleDateString("en-CA");
+  const yesterdayStr = yesterday.toISOString().split('T')[0];
 
   let streak = 0;
-
-  // 1. Determine start point
   let currentCheck: Date;
 
   if (activeDays.has(todayStr)) {
     streak = 1;
-    currentCheck = yesterday; // Start checking backward from yesterday
+    currentCheck = yesterday;
   } else if (activeDays.has(yesterdayStr)) {
-    streak = 0; // Don't count "today" yet, but streak is alive from yesterday
+    streak = 0;
     currentCheck = yesterday;
   } else {
-    return 0; // Streak broken
+    return 0;
   }
 
-  // 2. Walk backwards
   while (true) {
-    const checkStr = currentCheck.toLocaleDateString("en-CA");
+    const checkStr = currentCheck.toISOString().split('T')[0];
     if (activeDays.has(checkStr)) {
       streak++;
       currentCheck.setDate(currentCheck.getDate() - 1);

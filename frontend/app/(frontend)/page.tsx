@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useAppStore } from "@/store/useAppStore";
+import { useUser } from "@clerk/nextjs";
 import NeonButton from "@/components/ui/NeonButton";
 import GlassCard from "@/components/ui/GlassCard";
 
 export default function LandingPage() {
-  const user = useAppStore((s) => s.user);
+  const { user, isLoaded } = useUser();
+
+  if (!isLoaded) return null;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-black relative overflow-hidden">
